@@ -7,14 +7,19 @@ const User = () => {
   const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (!user) {
+    const userData = localStorage.getItem("user");
+
+    if (!userData) {
       navigate("/login");
+      return;
     }
-    if (user.role === "admin") {
+
+    const parsedUser = JSON.parse(userData);
+
+    if (parsedUser.role === "admin") {
       navigate("/admin");
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
