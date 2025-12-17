@@ -1,10 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { GoSearch } from "react-icons/go";
+import { FiLogOut } from "react-icons/fi";
 
 const User = () => {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
+  const [name, setName] = useState("");
+  const [userModal, setUserModal] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -19,6 +22,10 @@ const User = () => {
     if (parsedUser.role === "admin") {
       navigate("/admin");
     }
+
+    if (parsedUser.name) {
+      setName(parsedUser.name);
+    }
   }, [navigate]);
 
   useEffect(() => {
@@ -30,6 +37,12 @@ const User = () => {
     };
     fetchBlogs();
   }, []);
+
+  const nameLength = name.length;
+
+  const userName = name
+    ? name[0].toLocaleUpperCase() + name.slice(1, nameLength)
+    : null;
 
   return (
     <>
@@ -44,7 +57,63 @@ const User = () => {
           }}
         >
           <h1>Blogs</h1>
-          <button>Logout</button>
+          <div style={{ position: "realtive" }}>
+            {name && (
+              <div
+                style={{
+                  height: "50px",
+                  width: "50px",
+                  borderRadius: "50%",
+                  backgroundColor: "green",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+                onClick={() => setUserModal(!userModal)}
+              >
+                <p style={{ fontSize: "20px" }}>
+                  {name[0].toLocaleUpperCase()}
+                </p>
+                {userModal && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "80px",
+                      right: "10px",
+                      backgroundColor: "#ccc",
+                      padding: "10px 20px",
+                      boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "5px",
+                      width: "200px",
+                    }}
+                  >
+                    <h2 style={{ color: "#000" }}>{userName}</h2>
+                    <p
+                      style={{
+                        cursor: "pointer",
+                        color: "#000",
+                        backgroundColor: "#fff",
+                        padding: "8px 10px",
+                        borderRadius: "5px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                      }}
+                      onClick={() => {
+                        localStorage.removeItem("user");
+                        navigate("/login");
+                      }}
+                    >
+                      <FiLogOut /> Logout
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          {/* <button>Logout</button> */}
         </header>
         <div
           style={{

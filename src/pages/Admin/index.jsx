@@ -4,6 +4,7 @@ import { GoSearch } from "react-icons/go";
 import { FaRegEdit } from "react-icons/fa";
 import { MdOutlineDelete } from "react-icons/md";
 import { HiOutlineXMark } from "react-icons/hi2";
+import { FiLogOut } from "react-icons/fi";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const Admin = () => {
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [modelDlete, SetModelDlete] = useState(false);
+  const [name, setName] = useState("");
+  const [userModal, setUserModal] = useState(false);
 
   const fetchBlogs = async () => {
     const response = await fetch("http://localhost:5000/api/blogs");
@@ -28,13 +31,20 @@ const Admin = () => {
 
   useEffect(() => {
     const user = localStorage.getItem("user");
+
     if (!user) {
       navigate("/login");
     }
     if (user.role !== "admin") {
       navigate("/");
     }
+
+    const parsedUser = JSON.parse(user);
+    if (parsedUser.name) {
+      setName(parsedUser.name);
+    }
   }, []);
+  console.log(name);
 
   const openModal = (blog) => {
     setIsModelOpen(!isModelOpen);
@@ -89,6 +99,12 @@ const Admin = () => {
     setSelectedBlog(blog);
   };
 
+  const nameLength = name.length;
+
+  const userName = name
+    ? name[0].toLocaleUpperCase() + name.slice(1, nameLength)
+    : null;
+
   return (
     <>
       <div>
@@ -102,7 +118,63 @@ const Admin = () => {
           }}
         >
           <h1>Blogs</h1>
-          <button>Logout</button>
+          <div style={{ position: "realtive" }}>
+            {name && (
+              <div
+                style={{
+                  height: "50px",
+                  width: "50px",
+                  borderRadius: "50%",
+                  backgroundColor: "green",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+                onClick={() => setUserModal(!userModal)}
+              >
+                <p style={{ fontSize: "20px" }}>
+                  {name[0].toLocaleUpperCase()}
+                </p>
+                {userModal && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "80px",
+                      right: "10px",
+                      backgroundColor: "#ccc",
+                      padding: "10px 20px",
+                      boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "5px",
+                      width: "200px",
+                    }}
+                  >
+                    <h2 style={{ color: "#000" }}>{userName}</h2>
+                    <p
+                      style={{
+                        cursor: "pointer",
+                        color: "#000",
+                        backgroundColor: "#fff",
+                        padding: "8px 10px",
+                        borderRadius: "5px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                      }}
+                      onClick={() => {
+                        localStorage.removeItem("user");
+                        navigate("/login");
+                      }}
+                    >
+                      <FiLogOut /> Logout
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          {/* <button>Logout</button> */}
         </header>
         <div
           style={{
