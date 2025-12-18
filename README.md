@@ -9,10 +9,10 @@
 1. Authentication (User Form)
 2. Blogs (Blogs Form) & (CRUD)
 3. Logout Functionality
+4. Pagination
 
 ### Pending Topics
 
-1. Pagination
 2. Search Functionality
 
 http://amazon.in/electronics/mobiles/mi?page=1&count=20

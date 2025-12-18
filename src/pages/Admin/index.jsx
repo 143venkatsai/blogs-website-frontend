@@ -6,108 +6,126 @@ import { MdOutlineDelete } from "react-icons/md";
 import { HiOutlineXMark } from "react-icons/hi2";
 import { FiLogOut } from "react-icons/fi";
 
+import blogsData from "../../mockData/blogsdata";
+
 const Admin = () => {
   const navigate = useNavigate();
+
   const [blogs, setBlogs] = useState([]);
-  const [isModelOpen, setIsModelOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
-  const [modelDlete, SetModelDlete] = useState(false);
   const [name, setName] = useState("");
   const [userModal, setUserModal] = useState(false);
 
+  // Auth check
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+
+    if (!userData) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const user = JSON.parse(userData);
+
+    if (user.role !== "admin") {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (user.name) {
+      setName(user.name);
+    }
+  }, [navigate]);
+
+  // Fetch blogs
   const fetchBlogs = async () => {
-    const response = await fetch("http://localhost:5000/api/blogs");
-    const data = await response.json();
-    setBlogs(data);
+    try {
+      const response = await fetch("http://localhost:5000/api/blogs");
+      const data = await response.json();
+      console.log(data);
+      setBlogs(data);
+      setBlogs((prev) => [...prev, ...blogsData]);
+    } catch (error) {
+      console.error("Failed to fetch blogs", error);
+    }
   };
 
   useEffect(() => {
     fetchBlogs();
   }, []);
 
-  const handleClick = () => {
-    navigate("/create-blog");
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    navigate("/login", { replace: true });
   };
 
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-
-    if (!user) {
-      navigate("/login");
-    }
-    if (user.role !== "admin") {
-      navigate("/");
-    }
-
-    const parsedUser = JSON.parse(user);
-    if (parsedUser.name) {
-      setName(parsedUser.name);
-    }
-  }, []);
-  console.log(name);
-
-  const openModal = (blog) => {
-    setIsModelOpen(!isModelOpen);
+  const openEditModal = (blog) => {
     setSelectedBlog(blog);
+    setIsModalOpen(true);
+  };
+
+  const openDeleteModal = (blog) => {
+    setSelectedBlog(blog);
+    setIsDeleteModalOpen(true);
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const apiUrl = `http://localhost:5000/api/blog/${selectedBlog._id}`;
-      const options = {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(selectedBlog),
-      };
-      const response = await fetch(apiUrl, options);
+      const response = await fetch(
+        `http://localhost:5000/api/blog/${selectedBlog._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(selectedBlog),
+        }
+      );
+
       if (response.ok) {
         fetchBlogs();
-        setIsModelOpen(false);
+        setIsModalOpen(false);
         alert("Blog updated successfully");
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
-  const deleteBlog = async (id) => {
+  const deleteBlog = async () => {
     try {
-      const apiUrl = `http://localhost:5000/api/blog/${id}`;
-      const options = {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-      const response = await fetch(apiUrl, options);
+      const response = await fetch(
+        `http://localhost:5000/api/blog/${selectedBlog._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
       if (response.ok) {
         fetchBlogs();
+        setIsDeleteModalOpen(false);
         alert("Blog deleted successfully");
-        SetModelDlete(false);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
-  const openDeleteModal = (blog) => {
-    SetModelDlete(!modelDlete);
-    setSelectedBlog(blog);
-  };
-
-  const nameLength = name.length;
-
-  const userName = name
-    ? name[0].toLocaleUpperCase() + name.slice(1, nameLength)
-    : null;
+  const userName = name ? name[0].toUpperCase() + name.slice(1) : "";
 
   return (
     <>
       <div>
+        {/* Header */}
         <header
           style={{
             display: "flex",
@@ -118,7 +136,8 @@ const Admin = () => {
           }}
         >
           <h1>Blogs</h1>
-          <div style={{ position: "realtive" }}>
+
+          <div style={{ position: "relative" }}>
             {name && (
               <div
                 style={{
@@ -132,25 +151,26 @@ const Admin = () => {
                   color: "white",
                   cursor: "pointer",
                 }}
-                onClick={() => setUserModal(!userModal)}
+                onClick={() => setUserModal((prev) => !prev)}
               >
-                <p style={{ fontSize: "20px" }}>
-                  {name[0].toLocaleUpperCase()}
-                </p>
+                <p style={{ fontSize: "20px" }}>{name[0].toUpperCase()}</p>
+
                 {userModal && (
                   <div
                     style={{
                       position: "absolute",
-                      top: "80px",
-                      right: "10px",
+                      top: "60px",
+                      right: "0",
                       backgroundColor: "#ccc",
                       padding: "10px 20px",
                       boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.1)",
                       borderRadius: "5px",
                       width: "200px",
+                      zIndex: 10,
                     }}
                   >
                     <h2 style={{ color: "#000" }}>{userName}</h2>
+
                     <p
                       style={{
                         cursor: "pointer",
@@ -162,10 +182,7 @@ const Admin = () => {
                         alignItems: "center",
                         gap: "5px",
                       }}
-                      onClick={() => {
-                        localStorage.removeItem("user");
-                        navigate("/login");
-                      }}
+                      onClick={handleLogout}
                     >
                       <FiLogOut /> Logout
                     </p>
@@ -174,8 +191,9 @@ const Admin = () => {
               </div>
             )}
           </div>
-          {/* <button>Logout</button> */}
         </header>
+
+        {/* Content */}
         <div
           style={{
             display: "flex",
@@ -190,14 +208,13 @@ const Admin = () => {
               justifyContent: "space-between",
               alignItems: "center",
               width: "100%",
+              padding: "0 20px",
               boxSizing: "border-box",
-              padding: "0px 20px",
             }}
           >
             <div
               style={{
                 display: "flex",
-                justifyContent: "space-between",
                 alignItems: "center",
                 gap: "10px",
                 border: "1px solid #323f4b",
@@ -217,24 +234,22 @@ const Admin = () => {
               />
               <GoSearch size={20} />
             </div>
-            <div>
-              <button onClick={handleClick}> + Add Blog</button>
-            </div>
+
+            <button onClick={() => navigate("/create-blog")}>+ Add Blog</button>
           </div>
 
           <div
             style={{
               display: "flex",
-              alignItems: "center",
               gap: "20px",
               flexWrap: "wrap",
               marginTop: "40px",
               padding: "20px",
             }}
           >
-            {blogs.map((blog) => (
+            {blogs.map((blog, index) => (
               <div
-                key={blog._id}
+                key={index}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -245,27 +260,25 @@ const Admin = () => {
                   padding: "20px",
                 }}
               >
-                <h1 style={{ margin: "0" }}>{blog.title}</h1>
-                <p style={{ margin: "0" }}>{blog.description}</p>
+                <h1>{blog.title}</h1>
+                <p>{blog.description}</p>
                 <img
                   src={blog.image}
                   alt={blog.title}
-                  style={{ width: "100%", height: "200px", objectFit: "cover" }}
-                />
-                <div
                   style={{
-                    display: "flex",
-                    gap: "8px",
-                    marginLeft: "auto",
+                    width: "100%",
+                    height: "200px",
+                    objectFit: "cover",
                   }}
+                />
+
+                <div
+                  style={{ display: "flex", gap: "8px", marginLeft: "auto" }}
                 >
                   <FaRegEdit
                     size={24}
-                    style={{
-                      cursor: "pointer",
-                      color: "blue",
-                    }}
-                    onClick={() => openModal(blog)}
+                    style={{ cursor: "pointer", color: "blue" }}
+                    onClick={() => openEditModal(blog)}
                   />
                   <MdOutlineDelete
                     size={24}
@@ -279,14 +292,12 @@ const Admin = () => {
         </div>
       </div>
 
-      {isModelOpen && (
+      {/* Edit Modal */}
+      {isModalOpen && selectedBlog && (
         <div
           style={{
             position: "fixed",
-            top: "0",
-            left: "0",
-            width: "100vw",
-            height: "100vh",
+            inset: 0,
             backgroundColor: "rgba(0,0,0,0.5)",
             display: "flex",
             justifyContent: "center",
@@ -298,34 +309,24 @@ const Admin = () => {
               width: "400px",
               background: "#fff",
               padding: "20px",
-              display: "flex",
-              flexDirection: "column",
               borderRadius: "8px",
-              gap: "20px",
             }}
           >
             <HiOutlineXMark
               size={26}
               style={{ marginLeft: "auto", cursor: "pointer" }}
-              onClick={() => setIsModelOpen(!isModelOpen)}
+              onClick={() => setIsModalOpen(false)}
             />
-            <h1 style={{ textAlign: "center", fontSize: "20px", margin: "0" }}>
-              Edit Blog
-            </h1>
+
+            <h1 style={{ textAlign: "center" }}>Edit Blog</h1>
+
             <form
               onSubmit={handleUpdate}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "10px",
-              }}
+              style={{ display: "flex", flexDirection: "column", gap: "10px" }}
             >
               <input
                 type="text"
                 value={selectedBlog.title}
-                placeholder="Title"
-                style={{ padding: "8px" }}
                 onChange={(e) =>
                   setSelectedBlog({ ...selectedBlog, title: e.target.value })
                 }
@@ -333,8 +334,6 @@ const Admin = () => {
               <input
                 type="text"
                 value={selectedBlog.description}
-                placeholder="Description"
-                style={{ padding: "8px" }}
                 onChange={(e) =>
                   setSelectedBlog({
                     ...selectedBlog,
@@ -345,8 +344,6 @@ const Admin = () => {
               <input
                 type="text"
                 value={selectedBlog.image}
-                placeholder="Upload Image URL"
-                style={{ padding: "8px" }}
                 onChange={(e) =>
                   setSelectedBlog({ ...selectedBlog, image: e.target.value })
                 }
@@ -359,15 +356,13 @@ const Admin = () => {
         </div>
       )}
 
-      {modelDlete && (
+      {/* Delete Modal */}
+      {isDeleteModalOpen && (
         <div
           style={{
             position: "fixed",
-            top: "0",
-            left: "0",
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -378,37 +373,28 @@ const Admin = () => {
               width: "400px",
               background: "#fff",
               padding: "20px",
-              display: "flex",
-              flexDirection: "column",
               borderRadius: "8px",
-              gap: "20px",
             }}
           >
             <HiOutlineXMark
               size={26}
               style={{ marginLeft: "auto", cursor: "pointer" }}
-              onClick={() => SetModelDlete(!modelDlete)}
+              onClick={() => setIsDeleteModalOpen(false)}
             />
-            <h1 style={{ textAlign: "center", fontSize: "20px", margin: "0" }}>
+
+            <h1 style={{ textAlign: "center" }}>
               Are you sure you want to delete this blog?
             </h1>
+
             <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "20px",
-              }}
+              style={{ display: "flex", gap: "20px", justifyContent: "center" }}
             >
-              <button
-                style={{ background: "green", padding: "10px 20px" }}
-                onClick={() => deleteBlog(selectedBlog._id)}
-              >
+              <button style={{ background: "green" }} onClick={deleteBlog}>
                 Yes
               </button>
               <button
-                style={{ background: "red", padding: "10px 20px" }}
-                onClick={() => SetModelDlete(!modelDlete)}
+                style={{ background: "red" }}
+                onClick={() => setIsDeleteModalOpen(false)}
               >
                 No
               </button>
