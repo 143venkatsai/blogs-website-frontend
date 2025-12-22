@@ -10,9 +10,6 @@
 2. Blogs (Blogs Form) & (CRUD)
 3. Logout Functionality
 4. Pagination
+5. Search Functionality
 
-### Pending Topics
-
-2. Search Functionality
-
-http://amazon.in/electronics/mobiles/mi?page=1&count=20
+http://localhost:5000/api/blogs?search=mountain

@@ -14,6 +14,8 @@ const User = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [name, setName] = useState("");
   const [userModal, setUserModal] = useState(false);
+  const [search, setSearch] = useState("");
+  console.log(search);
 
   // Auth check (ProtectedRoute already handles most cases)
   useEffect(() => {
@@ -41,7 +43,9 @@ const User = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/blogs");
+        const response = await fetch(
+          `https://blogs-website-backend-9yg1.onrender.com/api/blogs?search=${search}`
+        );
         const data = await response.json();
         console.log(data);
         setBlogs(data);
@@ -52,7 +56,7 @@ const User = () => {
     };
 
     fetchBlogs();
-  }, []);
+  }, [search]);
 
   const userName = name ? name[0].toUpperCase() + name.slice(1) : "";
 
@@ -176,6 +180,8 @@ const User = () => {
         >
           <input
             type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search Blogs..."
             style={{
               border: "none",

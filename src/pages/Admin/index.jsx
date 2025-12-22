@@ -42,7 +42,9 @@ const Admin = () => {
   // Fetch blogs
   const fetchBlogs = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/blogs");
+      const response = await fetch(
+        "https://blogs-website-backend-9yg1.onrender.com/api/blogs"
+      );
       const data = await response.json();
       console.log(data);
       setBlogs(data);
@@ -76,7 +78,7 @@ const Admin = () => {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://localhost:5000/api/blog/${selectedBlog._id}`,
+        `https://blogs-website-backend-9yg1.onrender.com/api/blog/${selectedBlog._id}`,
         {
           method: "PUT",
           headers: {
@@ -100,7 +102,7 @@ const Admin = () => {
   const deleteBlog = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/blog/${selectedBlog._id}`,
+        `https://blogs-website-backend-9yg1.onrender.com/api/blog/${selectedBlog._id}`,
         {
           method: "DELETE",
           headers: {
